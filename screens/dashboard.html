@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #1B5E20 100%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            padding: 1.5rem 2rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .greeting h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .greeting h2 span { color: #FFD700; }
+        .greeting p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 2px;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #1B5E20;
+            cursor: pointer;
+        }
+
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            padding: 0 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+        .stat-icon { font-size: 1.4rem; margin-bottom: 0.4rem; }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #FFD700;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 2px;
+        }
+
+        /* Continue Button */
+        .continue-section {
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .btn-continue {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            color: #1B5E20;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* Section Headers */
+        .section-header {
+            padding: 0 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Building Progress List */
+        .building-list {
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .building-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 0.6rem;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .building-emoji { font-size: 1.8rem; }
+        .building-info { flex: 1; }
+        .building-name { font-weight: 600; font-size: 0.95rem; }
+        .building-theme { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+        .building-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .status-completed { background: rgba(76,175,80,0.3); color: #81C784; }
+        .status-unlocked { background: rgba(255,215,0,0.2); color: #FFD700; }
+        .status-locked { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+
+        /* Leaderboard Preview */
+        .leaderboard-card {
+            margin: 0 1.5rem 1.5rem;
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.2rem;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .leaderboard-header h3 { font-size: 1rem; }
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .rank-1 { background: #FFD700; color: #1B5E20; }
+        .rank-2 { background: #C0C0C0; color: #333; }
+        .rank-3 { background: #CD7F32; color: white; }
+        .rank-other { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+        .lb-name { flex: 1; font-size: 0.85rem; }
+        .lb-score { font-size: 0.85rem; color: #FFD700; font-weight: 600; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(27,94,32,0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 0.6rem 0 0.8rem;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+        .nav-item.active { color: #FFD700; }
+        .nav-icon { font-size: 1.3rem; }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto 2rem;
+            font-family: inherit;
+        }
+        .logout-btn:hover { background: rgba(255,82,82,0.2); color: #ff8a80; }
+
+        @media (max-width: 480px) {
+            .header { padding: 1rem 1.2rem; }
+            .stats { padding: 0 1.2rem; }
+            .continue-section, .building-list, .section-header { padding: 0 1.2rem; }
+            .leaderboard-card { margin: 0 1.2rem 1.5rem; }
+            .greeting h2 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="greeting">
+            <h2>Welcome back, <span id="user-name">Player</span></h2>
+            <p>Continue your Agile escape!</p>
+        </div>
+        <div class="avatar" id="avatar">P</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-icon">🏛️</div>
+            <div class="stat-value" id="stat-buildings">0/5</div>
+            <div class="stat-label">Buildings Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value" id="stat-points">0</div>
+            <div class="stat-label">Points Earned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="stat-rank">—</div>
+            <div class="stat-label">Your Rank</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="stat-streak">0</div>
+            <div class="stat-label">Best Stars</div>
+        </div>
+    </div>
+
+    <!-- Continue -->
+    <div class="continue-section">
+        <a href="map.html" class="btn-continue" id="btn-continue">▶ Continue to Campus Map</a>
+    </div>
+
+    <!-- Building Progress -->
+    <div class="section-header">Your Progress</div>
+    <div class="building-list" id="building-list"></div>
+
+    <!-- Leaderboard Preview -->
+    <div class="leaderboard-card">
+        <div class="leaderboard-header">
+            <h3>🏆 Leaderboard</h3>
+        </div>
+        <div id="leaderboard-list"></div>
+    </div>
+
+    <!-- Logout -->
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <button class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            Home
+        </button>
+        <a href="map.html" class="nav-item">
+            <span class="nav-icon">🗺️</span>
+            Campus Map
+        </a>
+        <button class="nav-item" onclick="alert('Profile coming in Sprint 3!')">
+            <span class="nav-icon">👤</span>
+            Profile
+        </button>
+        <button class="nav-item" onclick="alert('Settings coming in Sprint 3!')">
+            <span class="nav-icon">⚙️</span>
+            Settings
+        </button>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../data/puzzles.js"></script>
+    <script>
+        // Require login
+        if (!Auth.isLoggedIn()) {
+            window.location.href = '../index.html';
+        }
+
+        var user = Auth.getCurrentUser();
+        var progress = Storage.load();
+
+        // Header
+        if (user) {
+            document.getElementById('user-name').textContent = user.name.split(' ')[0];
+            document.getElementById('avatar').textContent = user.name.charAt(0).toUpperCase();
+        }
+
+        // Stats
+        var completed = progress.completed.length;
+        document.getElementById('stat-buildings').textContent = completed + '/5';
+        document.getElementById('stat-points').textContent = progress.totalScore || 0;
+
+        // Best stars count
+        var totalStars = 0;
+        Object.values(progress.scores).forEach(function(s) {
+            totalStars += (s.best >= 800 ? 3 : s.best >= 500 ? 2 : 1);
+        });
+        document.getElementById('stat-streak').textContent = totalStars;
+
+        // Building list
+        var buildingListEl = document.getElementById('building-list');
+        var order = PUZZLES_DATA.buildingOrder;
+        order.forEach(function(id, i) {
+            var b = PUZZLES_DATA.buildings[id];
+            var isDone = progress.completed.includes(id);
+            var isOpen = Storage.isUnlocked(id, order);
+            var statusClass, statusText;
+
+            if (isDone) {
+                statusClass = 'status-completed';
+                statusText = 'Completed';
+            } else if (isOpen) {
+                statusClass = 'status-unlocked';
+                statusText = 'Unlocked';
+            } else {
+                statusClass = 'status-locked';
+                statusText = 'Locked';
+            }
+
+            var item = document.createElement('div');
+            item.className = 'building-item';
+            item.innerHTML =
+                '<div class="building-emoji">' + b.emoji + '</div>' +
+                '<div class="building-info"><div class="building-name">' + b.name + '</div>' +
+                '<div class="building-theme">' + b.theme + '</div></div>' +
+                '<span class="building-status ' + statusClass + '">' + statusText + '</span>';
+            buildingListEl.appendChild(item);
+        });
+
+        // Leaderboard (local - shows all registered users sorted by score)
+        var lbEl = document.getElementById('leaderboard-list');
+        var users = Auth.getUsers();
+        var entries = [];
+        Object.keys(users).forEach(function(email) {
+            var u = users[email];
+            // For now, we use the current progress total if it's the current user
+            var userScore = 0;
+            if (user && email === user.email) {
+                userScore = progress.totalScore || 0;
+            }
+            entries.push({ name: u.name, score: userScore });
+        });
+        entries.sort(function(a, b) { return b.score - a.score; });
+        entries.slice(0, 5).forEach(function(entry, i) {
+            var rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+            var row = document.createElement('div');
+            row.className = 'leaderboard-row';
+            row.innerHTML =
+                '<div class="rank ' + rankClass + '">' + (i + 1) + '</div>' +
+                '<span class="lb-name">' + entry.name + '</span>' +
+                '<span class="lb-score">' + entry.score + ' pts</span>';
+            lbEl.appendChild(row);
+        });
+
+        if (entries.length === 0) {
+            lbEl.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:1rem;font-size:0.85rem;">No players yet. Be the first!</p>';
+        }
+
+        // Rank
+        if (user) {
+            var rank = entries.findIndex(function(e) { return e.name === user.name; });
+            document.getElementById('stat-rank').textContent = rank >= 0 ? '#' + (rank + 1) : '—';
+        }
+
+        function logout() {
+            Auth.logout();
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

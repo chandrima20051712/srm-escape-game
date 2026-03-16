@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Graduation!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear forwards;
+            z-index: 0;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotateZ(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotateZ(720deg); opacity: 0; }
+        }
+
+        .grad-content {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .grad-emoji { font-size: 5rem; margin-bottom: 1rem; }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 2rem;
+        }
+
+        .total-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+
+        .total-label {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 2rem;
+        }
+
+        .breakdown {
+            display: grid;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+        }
+
+        .breakdown-name { font-weight: 600; }
+        .breakdown-score { color: #FFD700; font-weight: 700; }
+        .breakdown-stars { margin-left: 0.5rem; }
+
+        .buttons { display: flex; flex-direction: column; gap: 0.8rem; }
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-primary { background: linear-gradient(135deg, #D4A017, #FFD700); color: #003366; }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .total-score { font-size: 3rem; }
+            .grad-emoji { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grad-content">
+        <div class="grad-emoji">\u{1F393}\u{1F3C6}</div>
+        <h1>CONGRATULATIONS!</h1>
+        <p class="subtitle">You've escaped all 5 SRM buildings!</p>
+        <div class="total-score" id="total-score">0</div>
+        <p class="total-label">TOTAL POINTS</p>
+        <div class="breakdown" id="breakdown"></div>
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+            <button class="btn btn-secondary" onclick="window.location.href='map.html'">Back to Map</button>
+        </div>
+    </div>
+
+    <script src="../js/storage.js"></script>
+    <script src="../data/puzzles.js"></script>
+    <script>
+        var progress = Storage.load();
+
+        // Total score
+        document.getElementById('total-score').textContent = progress.totalScore || 0;
+
+        // Breakdown
+        var breakdownEl = document.getElementById('breakdown');
+        PUZZLES_DATA.buildingOrder.forEach(function(id) {
+            var building = PUZZLES_DATA.buildings[id];
+            var scoreData = progress.scores[id];
+            var best = scoreData ? scoreData.best : 0;
+            var stars = best >= 800 ? '\u2B50\u2B50\u2B50' : best >= 500 ? '\u2B50\u2B50' : '\u2B50';
+
+            var item = document.createElement('div');
+            item.className = 'breakdown-item';
+            item.innerHTML =
+                '<span class="breakdown-name">' + building.emoji + ' ' + building.name + '</span>' +
+                '<span><span class="breakdown-score">' + best + '</span><span class="breakdown-stars">' + stars + '</span></span>';
+            breakdownEl.appendChild(item);
+        });
+
+        // Confetti
+        var colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+        for (var i = 0; i < 60; i++) {
+            var confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = (Math.random() * 8 + 6) + 'px';
+            confetti.style.height = (Math.random() * 8 + 6) + 'px';
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            confetti.style.animationDelay = (Math.random() * 4) + 's';
+            document.body.appendChild(confetti);
+        }
+
+        function playAgain() {
+            if (confirm('This will reset all your progress. Continue?')) {
+                Storage.reset();
+                window.location.href = 'map.html';
+            }
+        }
+    </script>
+</body>
+</html>

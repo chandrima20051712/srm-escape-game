@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Building Complete!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .complete-card {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        .emoji-big { font-size: 4rem; margin-bottom: 1rem; }
+        h1 { font-size: 2rem; color: #FFD700; margin-bottom: 0.5rem; }
+        .theme { color: rgba(255,255,255,0.6); margin-bottom: 2rem; }
+        .score-big {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+        .score-label { color: rgba(255,255,255,0.7); margin-bottom: 1.5rem; }
+        .stars { font-size: 3rem; margin-bottom: 1.5rem; }
+        .star-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 2rem;
+        }
+        .buttons { display: flex; flex-direction: column; gap: 0.8rem; }
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-primary { background: linear-gradient(135deg, #D4A017, #FFD700); color: #1B5E20; }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        @media (max-width: 768px) {
+            .complete-card { padding: 2rem 1.5rem; }
+            h1 { font-size: 1.5rem; }
+            .score-big { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="complete-card">
+        <div class="emoji-big" id="building-emoji"></div>
+        <h1 id="building-name">Building Complete!</h1>
+        <p class="theme" id="building-theme"></p>
+        <div class="score-big" id="final-score">0</div>
+        <p class="score-label">POINTS</p>
+        <div class="stars" id="star-rating"></div>
+        <p class="star-label" id="star-label"></p>
+        <div class="buttons" id="buttons"></div>
+    </div>
+
+    <script src="../js/storage.js"></script>
+    <script src="../data/puzzles.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const buildingId = params.get('building');
+        const score = parseInt(params.get('score')) || 0;
+
+        const building = PUZZLES_DATA.buildings[buildingId];
+        const order = PUZZLES_DATA.buildingOrder;
+
+        if (!building) {
+            window.location.href = 'map.html';
+            throw new Error('Invalid building');
+        }
+
+        // Save progress
+        Storage.complete(buildingId, score);
+
+        // Display
+        document.getElementById('building-emoji').textContent = building.emoji;
+        document.getElementById('building-name').textContent = building.name + ' Complete!';
+        document.getElementById('building-theme').textContent = building.theme;
+        document.getElementById('final-score').textContent = score;
+
+        // Star rating
+        var stars, label;
+        if (score >= 800) {
+            stars = '\u2B50\u2B50\u2B50';
+            label = 'Perfect! Outstanding performance!';
+        } else if (score >= 500) {
+            stars = '\u2B50\u2B50';
+            label = 'Great job! Almost perfect!';
+        } else {
+            stars = '\u2B50';
+            label = 'Good effort! Try again for more stars!';
+        }
+        document.getElementById('star-rating').textContent = stars;
+        document.getElementById('star-label').textContent = label;
+
+        // Buttons
+        var buttonsEl = document.getElementById('buttons');
+        var currentIdx = order.indexOf(buildingId);
+        var progress = Storage.load();
+        var allDone = order.every(function(id) { return progress.completed.includes(id); });
+
+        if (allDone) {
+            buttonsEl.innerHTML =
+                '<button class="btn btn-primary" onclick="window.location.href=\'graduation.html\'">\u{1F393} Graduation Ceremony!</button>' +
+                '<button class="btn btn-secondary" onclick="window.location.href=\'map.html\'">Back to Map</button>';
+        } else if (currentIdx < order.length - 1) {
+            var nextId = order[currentIdx + 1];
+            var nextBuilding = PUZZLES_DATA.buildings[nextId];
+            buttonsEl.innerHTML =
+                '<button class="btn btn-primary" onclick="window.location.href=\'quiz.html?building=' + nextId + '\'">Next: ' + nextBuilding.emoji + ' ' + nextBuilding.name + '</button>' +
+                '<button class="btn btn-secondary" onclick="window.location.href=\'map.html\'">Back to Map</button>';
+        } else {
+            buttonsEl.innerHTML =
+                '<button class="btn btn-primary" onclick="window.location.href=\'map.html\'">Back to Map</button>';
+        }
+    </script>
+</body>
+</html>

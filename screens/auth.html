@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #1B5E20 100%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-container {
+            max-width: 420px;
+            width: 100%;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: white; }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-header h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 0.3rem;
+        }
+        .auth-header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            color: rgba(255,255,255,0.6);
+            border: none;
+            background: none;
+        }
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* Form */
+        .form-panel { display: none; }
+        .form-panel.active { display: block; }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.35); }
+        .form-group input:focus { border-color: #FFD700; }
+        .error-msg {
+            background: rgba(255,82,82,0.2);
+            border: 1px solid rgba(255,82,82,0.4);
+            color: #ff8a80;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            color: #1B5E20;
+            margin-top: 0.5rem;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .switch-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .switch-text a {
+            color: #FFD700;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        @media (max-width: 480px) {
+            body { padding: 1.5rem; }
+            .auth-header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <a href="../index.html" class="back-btn">← Back</a>
+
+        <div class="auth-header">
+            <h1 id="auth-title">Welcome Back</h1>
+            <p id="auth-subtitle">Login to continue your escape</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+            <button class="tab" id="tab-register" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div class="form-panel active" id="panel-login">
+            <div class="error-msg" id="login-error"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="your@srm.edu" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+            <p class="switch-text">Don't have an account? <a onclick="switchTab('register')">Register</a></p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="form-panel" id="panel-register">
+            <div class="error-msg" id="register-error"></div>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="reg-name" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="your@srm.edu" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" placeholder="Create password (min 4 chars)" required>
+                </div>
+                <button type="submit" class="btn-submit">Create Account</button>
+            </form>
+            <p class="switch-text">Already have an account? <a onclick="switchTab('login')">Login</a></p>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check if already logged in
+        if (Auth.isLoggedIn()) {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Read mode from URL
+        var mode = new URLSearchParams(window.location.search).get('mode');
+        if (mode === 'register') switchTab('register');
+
+        function switchTab(tab) {
+            document.getElementById('tab-login').className = 'tab' + (tab === 'login' ? ' active' : '');
+            document.getElementById('tab-register').className = 'tab' + (tab === 'register' ? ' active' : '');
+            document.getElementById('panel-login').className = 'form-panel' + (tab === 'login' ? ' active' : '');
+            document.getElementById('panel-register').className = 'form-panel' + (tab === 'register' ? ' active' : '');
+
+            if (tab === 'login') {
+                document.getElementById('auth-title').textContent = 'Welcome Back';
+                document.getElementById('auth-subtitle').textContent = 'Login to continue your escape';
+            } else {
+                document.getElementById('auth-title').textContent = 'Join the Escape';
+                document.getElementById('auth-subtitle').textContent = 'Create your account to start playing';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById('login-email').value.trim();
+            var password = document.getElementById('login-password').value;
+            var result = Auth.login(email, password);
+
+            if (result.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                showError('login-error', result.error);
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            var name = document.getElementById('reg-name').value.trim();
+            var email = document.getElementById('reg-email').value.trim();
+            var password = document.getElementById('reg-password').value;
+            var result = Auth.register(name, email, password);
+
+            if (result.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                showError('register-error', result.error);
+            }
+        }
+
+        function showError(id, msg) {
+            var el = document.getElementById(id);
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 4000);
+        }
+    </script>
+</body>
+</html>

@@ -3,27 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRM Escape Game - Sprint 1</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>SRM Escape Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #1B5E20 100%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .landing-container {
+            max-width: 420px;
+            width: 100%;
+        }
+        .logo-section {
+            margin-bottom: 2.5rem;
+        }
+        .logo-icon {
+            font-size: 5rem;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-bottom: 0.3rem;
+        }
+        h1 span { color: #FFD700; }
+        .tagline {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+        }
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+        .feature {
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+        }
+        .feature-text {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 0.8rem;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .btn-play {
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            color: #1B5E20;
+            font-size: 1.3rem;
+            padding: 18px;
+            margin-bottom: 1.5rem;
+        }
+        .btn-login {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+        .btn-register {
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+        .footer {
+            margin-top: 3rem;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+        }
+        @media (max-width: 480px) {
+            body { padding: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+            .logo-icon { font-size: 4rem; }
+            .features { gap: 1.2rem; }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1>🏛️ SRM Escape Game</h1>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+    <div class="landing-container">
+        <div class="logo-section">
+            <div class="logo-icon">🏛️</div>
+            <h1>SRM <span>ESCAPE</span> GAME</h1>
+            <p class="tagline">Learn Agile & DevOps by escaping SRM buildings</p>
+            <span class="version-badge">v2.0 — 5 Buildings • 25 Puzzles</span>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🧩</div>
+                <div class="feature-text">25 Quizzes</div>
             </div>
-            <span class="progress-text" id="progressText">0/5 Buildings</span>
+            <div class="feature">
+                <div class="feature-icon">🏆</div>
+                <div class="feature-text">Leaderboard</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⏱️</div>
+                <div class="feature-text">Timed Puzzles</div>
+            </div>
         </div>
-    </header>
 
-    <main class="campus-container">
-        <div class="campus-map" id="campusMap">
-            <!-- Buildings will be generated by JS -->
-        </div>
-    </main>
+        <button class="btn btn-play" onclick="startPlaying()">▶ PLAY NOW</button>
 
-    <script src="js/game.js"></script>
+        <div class="divider">or continue with</div>
+
+        <a href="screens/auth.html?mode=login" class="btn btn-login">Login</a>
+        <a href="screens/auth.html?mode=register" class="btn btn-register">Create Account</a>
+
+        <div class="footer">SRM Institute of Science and Technology</div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (Auth.isLoggedIn()) {
+            window.location.href = 'screens/dashboard.html';
+        }
+        function startPlaying() {
+            if (Auth.isLoggedIn()) {
+                window.location.href = 'screens/dashboard.html';
+            } else {
+                window.location.href = 'screens/auth.html?mode=register';
+            }
+        }
+    </script>
 </body>
 </html>

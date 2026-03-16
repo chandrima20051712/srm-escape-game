@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/quiz.css">
+</head>
+<body class="puzzle-screen">
+    <!-- Flash Overlay -->
+    <div id="feedback-flash" class="feedback-flash"></div>
+
+    <!-- HUD Bar -->
+    <div class="hud">
+        <button class="back-btn" onclick="if(confirm('Leave quiz? Progress will be lost.')) window.location.href='map.html'">
+            &larr; Back
+        </button>
+        <div class="timer-circle">
+            <span id="timer-text" class="timer-text">1:00</span>
+        </div>
+        <div id="lives" class="lives"></div>
+        <div id="score-display" class="score-display">Score: 0</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="puzzle-content">
+        <h2 id="building-title"></h2>
+        <p id="building-theme" style="color: rgba(255,255,255,0.6); margin-bottom: 1rem;"></p>
+        <div id="question-counter" class="question-counter"></div>
+        <div id="progress-dots" class="progress-dots"></div>
+        <div id="quiz-area">
+            <div class="question" id="question-text"></div>
+            <div class="options" id="options-container"></div>
+            <div class="explanation-box" id="explanation" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="game-over" class="game-over-overlay" style="display:none;">
+        <h2>GAME OVER</h2>
+        <p id="game-over-score" class="final-score"></p>
+        <div class="game-over-buttons">
+            <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+            <button class="btn btn-secondary" onclick="window.location.href='map.html'">Back to Map</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/storage.js"></script>
+    <script src="../data/puzzles.js"></script>
+    <script src="../components/lives.js"></script>
+    <script src="../components/score.js"></script>
+    <script src="../components/timer.js"></script>
+    <script src="../components/mcq.js"></script>
+    <script src="../js/quiz-engine.js"></script>
+</body>
+</html>
