@@ -7,3 +7,4 @@ backend/__pycache__/
 .vscode/
 backend/.env
 backend/*.db
+*.db
