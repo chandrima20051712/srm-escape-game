@@ -46,3 +46,7 @@ class GameTimer {
         this.timeLeft = newTime || this.timeLimit;
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GameTimer;
+}

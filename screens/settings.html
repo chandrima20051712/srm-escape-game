@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape Game - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            background: linear-gradient(135deg, #0f3d16 0%, #1b5e20 45%, #2e7d32 100%);
+            padding: 1.5rem;
+        }
+        .wrap { max-width: 860px; margin: 0 auto; }
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+        .back { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 600; }
+        h1 { font-size: 2rem; font-weight: 900; }
+        .panel {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .section-title { font-weight: 800; font-size: 1rem; margin-bottom: 0.4rem; }
+        .section-sub { color: rgba(255,255,255,0.65); font-size: 0.9rem; margin-bottom: 1rem; }
+        .toggle-list { display: grid; gap: 0.75rem; }
+        .toggle {
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+            background: rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 1rem;
+        }
+        .toggle-copy { display: flex; flex-direction: column; gap: 0.15rem; }
+        .toggle-title { font-weight: 700; }
+        .toggle-desc { color: rgba(255,255,255,0.6); font-size: 0.8rem; }
+        .switch {
+            position: relative;
+            width: 56px;
+            height: 32px;
+            flex: none;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background: rgba(255,255,255,0.18);
+            border-radius: 999px;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .slider:before {
+            position: absolute; content: '';
+            height: 24px; width: 24px; left: 4px; top: 3px;
+            background: white; border-radius: 50%; transition: 0.2s;
+        }
+        input:checked + .slider { background: linear-gradient(135deg, #ffd700, #ffa000); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
+        .btn {
+            border: none; border-radius: 14px; padding: 0.95rem 1.1rem; font-weight: 800; cursor: pointer; text-decoration: none;
+        }
+        .btn-primary { background: linear-gradient(135deg, #ffd700, #ffa000); color: #1b5e20; }
+        .btn-secondary { background: rgba(255,255,255,0.14); color: white; border: 1px solid rgba(255,255,255,0.14); }
+        .btn-danger { background: rgba(255,82,82,0.22); color: #ffb8b8; border: 1px solid rgba(255,82,82,0.2); }
+        .preview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        .mini {
+            padding: 0.95rem;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+        }
+        .mini-label { color: rgba(255,255,255,0.6); font-size: 0.78rem; margin-bottom: 0.25rem; }
+        .mini-value { font-size: 1.2rem; font-weight: 900; color: #ffd700; }
+        @media (max-width: 760px) {
+            .preview { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 560px) {
+            body { padding: 1rem; }
+            .preview { grid-template-columns: 1fr; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <a class="back" href="dashboard.html">← Back to Dashboard</a>
+            <h1>Settings</h1>
+            <a class="back" href="profile.html">Profile →</a>
+        </div>
+
+        <div class="panel">
+            <div class="section-title">Gameplay Preferences</div>
+            <div class="section-sub">These settings are stored on this device and used by the app when possible.</div>
+            <div class="toggle-list">
+                <div class="toggle">
+                    <div class="toggle-copy">
+                        <div class="toggle-title">Sound Effects</div>
+                        <div class="toggle-desc">Keep celebration and feedback sounds enabled.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle">
+                    <div class="toggle-copy">
+                        <div class="toggle-title">Hints</div>
+                        <div class="toggle-desc">Show the hint button during quizzes.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="hints-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle">
+                    <div class="toggle-copy">
+                        <div class="toggle-title">Auto Advance</div>
+                        <div class="toggle-desc">Move automatically after the final building completion screen.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="auto-advance-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle">
+                    <div class="toggle-copy">
+                        <div class="toggle-title">Reduce Motion</div>
+                        <div class="toggle-desc">Tone down animations and motion-heavy effects.</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="reduce-motion-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="section-title">Profile Snapshot</div>
+            <div class="preview">
+                <div class="mini">
+                    <div class="mini-label">Buildings</div>
+                    <div class="mini-value" id="mini-buildings">0</div>
+                </div>
+                <div class="mini">
+                    <div class="mini-label">Points</div>
+                    <div class="mini-value" id="mini-points">0</div>
+                </div>
+                <div class="mini">
+                    <div class="mini-label">Best Stars</div>
+                    <div class="mini-value" id="mini-stars">0</div>
+                </div>
+                <div class="mini">
+                    <div class="mini-label">Mode</div>
+                    <div class="mini-value" id="mini-mode">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn btn-secondary" onclick="resetSettings()">Reset Defaults</button>
+            <button class="btn btn-danger" onclick="clearLocalData()">Clear Local Progress</button>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/settings.js"></script>
+    <script>
+        if (!Auth.isLoggedIn()) {
+            window.location.href = '../index.html';
+        }
+
+        var progress = Storage.load();
+        var settings = Settings.load();
+
+        function syncUI() {
+            document.getElementById('sound-toggle').checked = !!settings.sound;
+            document.getElementById('hints-toggle').checked = !!settings.hints;
+            document.getElementById('auto-advance-toggle').checked = !!settings.autoAdvance;
+            document.getElementById('reduce-motion-toggle').checked = !!settings.reduceMotion;
+
+            document.getElementById('mini-buildings').textContent = progress.completed.length;
+            document.getElementById('mini-points').textContent = progress.totalScore || 0;
+            document.getElementById('mini-stars').textContent = Object.values(progress.scores).reduce(function(sum, entry) {
+                return sum + (entry.best >= 800 ? 3 : entry.best >= 500 ? 2 : 1);
+            }, 0);
+            document.getElementById('mini-mode').textContent = window.SRM_USE_BACKEND === true ? 'Backend' : 'Offline';
+        }
+
+        function saveSettings() {
+            settings.sound = document.getElementById('sound-toggle').checked;
+            settings.hints = document.getElementById('hints-toggle').checked;
+            settings.autoAdvance = document.getElementById('auto-advance-toggle').checked;
+            settings.reduceMotion = document.getElementById('reduce-motion-toggle').checked;
+            Settings.save(settings);
+            alert('Settings saved');
+        }
+
+        function resetSettings() {
+            if (!confirm('Reset settings to defaults?')) return;
+            Settings.reset();
+            settings = Settings.load();
+            syncUI();
+        }
+
+        function clearLocalData() {
+            if (!confirm('Clear local game progress and settings on this device?')) return;
+            Storage.reset();
+            Settings.reset();
+            window.location.href = 'dashboard.html';
+        }
+
+        syncUI();
+    </script>
+</body>
+</html>

@@ -40,3 +40,7 @@ const Storage = {
         localStorage.removeItem(this.KEY);
     }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Storage;
+}

@@ -53,3 +53,7 @@ class MCQ {
         }
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = MCQ;
+}

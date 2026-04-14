@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape - Admin Puzzle Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #dcedc8, #a5d6a7 45%, #81c784 100%);
+            color: #1b5e20;
+            padding: 1.5rem;
+        }
+        .wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 900;
+        }
+        .actions {
+            display: flex;
+            gap: 0.6rem;
+        }
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-primary { background: #1b5e20; color: white; }
+        .btn-secondary { background: #e8f5e9; color: #1b5e20; border: 1px solid #66bb6a; }
+        .panel {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(27,94,32,0.2);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .field.full { grid-column: 1 / -1; }
+        label { font-size: 0.8rem; font-weight: 600; }
+        input, textarea {
+            border: 1px solid #a5d6a7;
+            border-radius: 10px;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        textarea { min-height: 80px; resize: vertical; }
+        .list {
+            display: grid;
+            gap: 0.6rem;
+        }
+        .item {
+            border: 1px solid #c8e6c9;
+            border-radius: 12px;
+            background: #f1f8e9;
+            padding: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.7rem;
+            align-items: start;
+        }
+        .item h3 {
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+        }
+        .item p {
+            font-size: 0.82rem;
+            color: #2e7d32;
+        }
+        .item-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .tiny {
+            border: none;
+            border-radius: 8px;
+            padding: 7px 9px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .edit { background: #fff176; color: #4e342e; }
+        .delete { background: #ef5350; color: white; }
+        .msg {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+        .ok { background: #d0f8ce; color: #1b5e20; border: 1px solid #66bb6a; }
+        .err { background: #ffcdd2; color: #b71c1c; border: 1px solid #ef9a9a; }
+        @media (max-width: 740px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <h1>Admin Puzzle Editor</h1>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">Player Dashboard</button>
+                <button class="btn btn-primary" onclick="logoutAdmin()">Logout Admin</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2 style="margin-bottom: 0.7rem;">Create / Update Puzzle</h2>
+            <form id="puzzle-form" onsubmit="savePuzzle(event)">
+                <input type="hidden" id="puzzle-id">
+                <div class="grid">
+                    <div class="field">
+                        <label>Building ID</label>
+                        <input id="building-id" placeholder="crc" required>
+                    </div>
+                    <div class="field">
+                        <label>Puzzle Order</label>
+                        <input id="puzzle-order" type="number" min="1" required>
+                    </div>
+                    <div class="field full">
+                        <label>Question</label>
+                        <textarea id="question" required></textarea>
+                    </div>
+                    <div class="field full">
+                        <label>Options (comma separated)</label>
+                        <input id="options" placeholder="Option A, Option B, Option C, Option D" required>
+                    </div>
+                    <div class="field">
+                        <label>Correct Answer Index</label>
+                        <input id="correct-answer" type="number" min="0" placeholder="0 for first option" required>
+                    </div>
+                    <div class="field">
+                        <label>Time Limit (seconds)</label>
+                        <input id="time-limit" type="number" min="10" value="30" required>
+                    </div>
+                    <div class="field full">
+                        <label>Hint</label>
+                        <input id="hint" placeholder="Optional hint">
+                    </div>
+                    <div class="field full">
+                        <label>Explanation</label>
+                        <textarea id="explanation" placeholder="Optional explanation"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 0.8rem; display: flex; gap: 0.6rem;">
+                    <button class="btn btn-primary" type="submit">Save Puzzle</button>
+                    <button class="btn btn-secondary" type="button" onclick="resetForm()">Clear</button>
+                </div>
+                <div class="msg ok" id="ok-msg"></div>
+                <div class="msg err" id="err-msg"></div>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2 style="margin-bottom: 0.7rem;">Existing Puzzles</h2>
+            <div class="list" id="puzzle-list"></div>
+        </div>
+    </div>
+
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+        if (!Auth.isAdminLoggedIn()) {
+            window.location.href = 'admin-auth.html';
+        }
+
+        function getAdminHeaders() {
+            return {
+                Authorization: 'Bearer ' + Auth.getAdminToken()
+            };
+        }
+
+        function toMessage(value, fallback) {
+            if (value === null || value === undefined) return fallback;
+            if (typeof value === 'string') return value;
+            if (value instanceof Error) return value.message || fallback;
+            try {
+                return JSON.stringify(value);
+            } catch (err) {
+                return fallback;
+            }
+        }
+
+        function showMsg(type, text) {
+            var ok = document.getElementById('ok-msg');
+            var err = document.getElementById('err-msg');
+            ok.style.display = 'none';
+            err.style.display = 'none';
+            var target = type === 'ok' ? ok : err;
+            target.textContent = toMessage(text, '');
+            target.style.display = 'block';
+            setTimeout(function() { target.style.display = 'none'; }, 4000);
+        }
+
+        function resetForm() {
+            document.getElementById('puzzle-id').value = '';
+            document.getElementById('building-id').value = '';
+            document.getElementById('puzzle-order').value = '';
+            document.getElementById('question').value = '';
+            document.getElementById('options').value = '';
+            document.getElementById('correct-answer').value = '';
+            document.getElementById('time-limit').value = '30';
+            document.getElementById('hint').value = '';
+            document.getElementById('explanation').value = '';
+        }
+
+        function parseOptions(value) {
+            return value.split(',').map(function(item) { return item.trim(); }).filter(Boolean);
+        }
+
+        function fillForm(puzzle) {
+            document.getElementById('puzzle-id').value = String(puzzle.id);
+            document.getElementById('building-id').value = puzzle.building_id || '';
+            document.getElementById('puzzle-order').value = String(puzzle.puzzle_order || 1);
+            document.getElementById('question').value = puzzle.question || '';
+            document.getElementById('options').value = (puzzle.options || []).join(', ');
+            document.getElementById('correct-answer').value = String(puzzle.correct_answer || 0);
+            document.getElementById('time-limit').value = String(puzzle.time_limit || 30);
+            document.getElementById('hint').value = puzzle.hint || '';
+            document.getElementById('explanation').value = puzzle.explanation || '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderPuzzles(puzzles) {
+            var list = document.getElementById('puzzle-list');
+            if (!puzzles.length) {
+                list.innerHTML = '<p>No puzzles yet.</p>';
+                return;
+            }
+
+            list.innerHTML = puzzles.map(function(p) {
+                var safeQuestion = (p.question || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return '<div class="item">'
+                    + '<div>'
+                    + '<h3>' + p.building_id + ' • #' + p.puzzle_order + '</h3>'
+                    + '<p>' + safeQuestion + '</p>'
+                    + '</div>'
+                    + '<div class="item-actions">'
+                    + '<button class="tiny edit" onclick="editPuzzle(' + p.id + ')">Edit</button>'
+                    + '<button class="tiny delete" onclick="deletePuzzle(' + p.id + ')">Delete</button>'
+                    + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        async function loadPuzzles() {
+            try {
+                var puzzles = await SRMApi.request('/api/puzzles', {
+                    method: 'GET',
+                    headers: getAdminHeaders()
+                });
+                window.__adminPuzzles = puzzles;
+                renderPuzzles(puzzles);
+            } catch (err) {
+                showMsg('err', err.message || 'Failed to load puzzles');
+            }
+        }
+
+        async function savePuzzle(e) {
+            e.preventDefault();
+            var id = document.getElementById('puzzle-id').value;
+            var rawCorrectAnswer = document.getElementById('correct-answer').value;
+            var payload = {
+                buildingId: document.getElementById('building-id').value.trim().toLowerCase(),
+                puzzleOrder: Number(document.getElementById('puzzle-order').value),
+                question: document.getElementById('question').value.trim(),
+                options: parseOptions(document.getElementById('options').value),
+                correctAnswer: Number(rawCorrectAnswer),
+                timeLimit: Number(document.getElementById('time-limit').value),
+                hint: document.getElementById('hint').value.trim() || null,
+                explanation: document.getElementById('explanation').value.trim() || null
+            };
+
+            try {
+                if (payload.options.length < 2) {
+                    throw new Error('At least two options are required');
+                }
+
+                if (!Number.isInteger(payload.correctAnswer)) {
+                    throw new Error('Correct answer index must be a whole number');
+                }
+
+                if (payload.correctAnswer < 0 || payload.correctAnswer >= payload.options.length) {
+                    throw new Error('Correct answer index must be between 0 and ' + (payload.options.length - 1));
+                }
+
+                if (!id) {
+                    var created = await SRMApi.request('/api/puzzles', {
+                        method: 'POST',
+                        headers: getAdminHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+                    showMsg('ok', 'Puzzle created: ' + (created.id || 'saved'));
+                } else {
+                    var updated = await SRMApi.request('/api/puzzles/' + id, {
+                        method: 'PUT',
+                        headers: getAdminHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+                    showMsg('ok', 'Puzzle updated: ' + (updated.id || id));
+                }
+                resetForm();
+                await loadPuzzles();
+            } catch (err) {
+                showMsg('err', toMessage(err, 'Failed to save puzzle'));
+            }
+        }
+
+        function editPuzzle(id) {
+            var puzzle = (window.__adminPuzzles || []).find(function(item) { return item.id === id; });
+            if (!puzzle) return;
+            fillForm(puzzle);
+        }
+
+        async function deletePuzzle(id) {
+            if (!window.confirm('Delete this puzzle?')) return;
+            try {
+                await SRMApi.request('/api/puzzles/' + id, {
+                    method: 'DELETE',
+                    headers: getAdminHeaders()
+                });
+                showMsg('ok', 'Puzzle deleted');
+                await loadPuzzles();
+            } catch (err) {
+                showMsg('err', err.message || 'Failed to delete puzzle');
+            }
+        }
+
+        function logoutAdmin() {
+            Auth.logoutAdmin();
+            window.location.href = 'admin-auth.html';
+        }
+
+        loadPuzzles();
+    </script>
+</body>
+</html>

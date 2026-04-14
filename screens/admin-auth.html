@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRM Escape - Admin Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #4A148C 0%, #6A1B9A 40%, #311B92 100%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 18px;
+            padding: 1.5rem;
+            backdrop-filter: blur(6px);
+        }
+        h1 { font-size: 1.7rem; font-weight: 900; margin-bottom: 0.4rem; }
+        p { color: rgba(255,255,255,0.75); font-size: 0.9rem; margin-bottom: 1.2rem; }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            flex: 1;
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            background: transparent;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .row { margin-bottom: 0.8rem; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 0.3rem; color: rgba(255,255,255,0.8); }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            color: white;
+        }
+        .error {
+            display: none;
+            border: 1px solid rgba(255,88,88,0.5);
+            background: rgba(255,88,88,0.18);
+            color: #ffd0d0;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 0.9rem;
+            font-size: 0.85rem;
+        }
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFEB3B, #FFC107);
+            color: #3E2723;
+        }
+        .back {
+            display: inline-block;
+            margin-top: 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Admin Access</h1>
+        <p>Use separate admin credentials to manage quiz puzzles.</p>
+
+        <div class="tabs">
+            <button class="tab active" id="tab-login" onclick="switchTab('login')">Admin Login</button>
+            <button class="tab" id="tab-register" onclick="switchTab('register')">Admin Register</button>
+        </div>
+
+        <div class="panel active" id="panel-login">
+            <div class="error" id="login-error"></div>
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="row">
+                    <label>Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="row">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button class="btn" type="submit">Login As Admin</button>
+            </form>
+        </div>
+
+        <div class="panel" id="panel-register">
+            <div class="error" id="register-error"></div>
+            <form onsubmit="handleAdminRegister(event)">
+                <div class="row">
+                    <label>Admin Name</label>
+                    <input type="text" id="register-name" required>
+                </div>
+                <div class="row">
+                    <label>Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="row">
+                    <label>Password</label>
+                    <input type="password" id="register-password" minlength="4" required>
+                </div>
+                <button class="btn" type="submit">Create Admin Account</button>
+            </form>
+        </div>
+
+        <a class="back" href="../index.html">Back to home</a>
+    </div>
+
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (Auth.isAdminLoggedIn()) {
+            window.location.href = 'admin-editor.html';
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-login').className = 'tab' + (tab === 'login' ? ' active' : '');
+            document.getElementById('tab-register').className = 'tab' + (tab === 'register' ? ' active' : '');
+            document.getElementById('panel-login').className = 'panel' + (tab === 'login' ? ' active' : '');
+            document.getElementById('panel-register').className = 'panel' + (tab === 'register' ? ' active' : '');
+        }
+
+        function showError(id, msg) {
+            var el = document.getElementById(id);
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(function() {
+                el.style.display = 'none';
+            }, 4000);
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById('login-email').value.trim();
+            var password = document.getElementById('login-password').value;
+            var result = await Auth.loginAdmin(email, password);
+            if (result.success) {
+                window.location.href = 'admin-editor.html';
+                return;
+            }
+            showError('login-error', result.error || 'Admin login failed');
+        }
+
+        async function handleAdminRegister(e) {
+            e.preventDefault();
+            var name = document.getElementById('register-name').value.trim();
+            var email = document.getElementById('register-email').value.trim();
+            var password = document.getElementById('register-password').value;
+            var result = await Auth.registerAdmin(name, email, password);
+            if (result.success) {
+                window.location.href = 'admin-editor.html';
+                return;
+            }
+            showError('register-error', result.error || 'Admin registration failed');
+        }
+    </script>
+</body>
+</html>

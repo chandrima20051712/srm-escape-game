@@ -34,6 +34,10 @@
             <div class="options" id="options-container"></div>
             <div class="explanation-box" id="explanation" style="display:none;"></div>
         </div>
+        <div class="hint-panel">
+            <button id="hint-btn" type="button" class="hint-btn">Show Hint</button>
+            <div id="hint-box" class="hint-box" style="display:none;"></div>
+        </div>
     </div>
 
     <!-- Game Over Overlay -->
@@ -47,6 +51,10 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
+    <script src="../js/api.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../data/puzzles.js"></script>
     <script src="../components/lives.js"></script>

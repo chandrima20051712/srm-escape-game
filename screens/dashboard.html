@@ -238,6 +238,10 @@
         <div class="avatar" id="avatar">P</div>
     </div>
 
+    <div class="continue-section" style="padding-top: 0;">
+        <a href="profile.html" class="btn-continue" style="margin-bottom: 0.75rem; background: linear-gradient(135deg, #ffffff, #dcedc8); color: #1B5E20;">👤 Open Profile</a>
+        <a href="settings.html" class="btn-continue" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.12);">⚙️ Open Settings</a>
+    </div>
     <!-- Stats -->
     <div class="stats">
         <div class="stat-card">
@@ -292,16 +296,19 @@
             <span class="nav-icon">🗺️</span>
             Campus Map
         </a>
-        <button class="nav-item" onclick="alert('Profile coming in Sprint 3!')">
+        <button class="nav-item" onclick="window.location.href='profile.html'">
             <span class="nav-icon">👤</span>
             Profile
         </button>
-        <button class="nav-item" onclick="alert('Settings coming in Sprint 3!')">
+        <button class="nav-item" onclick="window.location.href='settings.html'">
             <span class="nav-icon">⚙️</span>
             Settings
         </button>
     </div>
 
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
     <script src="../js/auth.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../data/puzzles.js"></script>
@@ -313,15 +320,19 @@
 
         var user = Auth.getCurrentUser();
         var progress = Storage.load();
+        var backendEnabled = window.SRM_USE_BACKEND === true;
 
         // Header
         if (user) {
-            document.getElementById('user-name').textContent = user.name.split(' ')[0];
-            document.getElementById('avatar').textContent = user.name.charAt(0).toUpperCase();
+            var displayName = user.name || user.username || 'Player';
+            document.getElementById('user-name').textContent = displayName.split(' ')[0];
+            document.getElementById('avatar').textContent = displayName.charAt(0).toUpperCase();
         }
 
         // Stats
-        var completed = progress.completed.length;
+        var completed = PUZZLES_DATA.buildingOrder.filter(function(id) {
+            return progress.completed.includes(id);
+        }).length;
         document.getElementById('stat-buildings').textContent = completed + '/5';
         document.getElementById('stat-points').textContent = progress.totalScore || 0;
 
@@ -362,40 +373,84 @@
             buildingListEl.appendChild(item);
         });
 
-        // Leaderboard (local - shows all registered users sorted by score)
         var lbEl = document.getElementById('leaderboard-list');
-        var users = Auth.getUsers();
-        var entries = [];
-        Object.keys(users).forEach(function(email) {
-            var u = users[email];
-            // For now, we use the current progress total if it's the current user
-            var userScore = 0;
-            if (user && email === user.email) {
-                userScore = progress.totalScore || 0;
+
+        function renderLeaderboard(entries) {
+            lbEl.innerHTML = '';
+            entries.slice(0, 5).forEach(function(entry, i) {
+                var rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+                var row = document.createElement('div');
+                row.className = 'leaderboard-row';
+                row.innerHTML =
+                    '<div class="rank ' + rankClass + '">' + (i + 1) + '</div>' +
+                    '<span class="lb-name">' + entry.username + '</span>' +
+                    '<span class="lb-score">' + entry.total_score + ' pts</span>';
+                lbEl.appendChild(row);
+            });
+
+            if (entries.length === 0) {
+                lbEl.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:1rem;font-size:0.85rem;">No players yet. Be the first!</p>';
             }
-            entries.push({ name: u.name, score: userScore });
-        });
-        entries.sort(function(a, b) { return b.score - a.score; });
-        entries.slice(0, 5).forEach(function(entry, i) {
-            var rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
-            var row = document.createElement('div');
-            row.className = 'leaderboard-row';
-            row.innerHTML =
-                '<div class="rank ' + rankClass + '">' + (i + 1) + '</div>' +
-                '<span class="lb-name">' + entry.name + '</span>' +
-                '<span class="lb-score">' + entry.score + ' pts</span>';
-            lbEl.appendChild(row);
-        });
-
-        if (entries.length === 0) {
-            lbEl.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:1rem;font-size:0.85rem;">No players yet. Be the first!</p>';
         }
 
-        // Rank
-        if (user) {
-            var rank = entries.findIndex(function(e) { return e.name === user.name; });
-            document.getElementById('stat-rank').textContent = rank >= 0 ? '#' + (rank + 1) : '—';
+        function renderLocalLeaderboard() {
+            var users = Auth.getUsers();
+            var entries = [];
+            Object.keys(users).forEach(function(email) {
+                var u = users[email];
+                var userScore = 0;
+                if (user && email === user.email) {
+                    userScore = progress.totalScore || 0;
+                }
+                entries.push({ username: u.name, total_score: userScore });
+            });
+            entries.sort(function(a, b) { return b.total_score - a.total_score; });
+            renderLeaderboard(entries);
+
+            if (user) {
+                var rank = entries.findIndex(function(e) {
+                    return e.username === (user.name || user.username);
+                });
+                document.getElementById('stat-rank').textContent = rank >= 0 ? '#' + (rank + 1) : '—';
+            }
         }
+
+        async function loadLeaderboard() {
+            if (!backendEnabled) {
+                renderLocalLeaderboard();
+                return;
+            }
+
+            try {
+                var response = await fetch('http://localhost:5000/api/scores/leaderboard?limit=5');
+                var leaderboard = await response.json();
+                if (!response.ok) throw new Error(leaderboard.error || 'Failed');
+
+                renderLeaderboard(leaderboard.map(function(entry) {
+                    return {
+                        username: entry.username,
+                        total_score: parseInt(entry.total_score, 10) || 0
+                    };
+                }));
+
+                var current = JSON.parse(localStorage.getItem(Auth.KEY + '_current') || '{}');
+                if (current.token) {
+                    var rankResponse = await fetch('http://localhost:5000/api/scores/rank', {
+                        headers: {
+                            Authorization: 'Bearer ' + current.token
+                        }
+                    });
+                    var rankData = await rankResponse.json();
+                    if (rankResponse.ok) {
+                        document.getElementById('stat-rank').textContent = rankData.rank ? '#' + rankData.rank : '—';
+                    }
+                }
+            } catch (err) {
+                renderLocalLeaderboard();
+            }
+        }
+
+        loadLeaderboard();
 
         function logout() {
             Auth.logout();

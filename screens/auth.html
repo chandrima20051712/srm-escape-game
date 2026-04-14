@@ -197,8 +197,13 @@
             </form>
             <p class="switch-text">Already have an account? <a onclick="switchTab('login')">Login</a></p>
         </div>
+
+        <p class="switch-text">Need puzzle editor access? <a href="admin-auth.html">Go to Admin Portal</a></p>
     </div>
 
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
     <script src="../js/auth.js"></script>
     <script>
         // Check if already logged in
@@ -225,11 +230,11 @@
             }
         }
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             var email = document.getElementById('login-email').value.trim();
             var password = document.getElementById('login-password').value;
-            var result = Auth.login(email, password);
+            var result = await Auth.login(email, password);
 
             if (result.success) {
                 window.location.href = 'dashboard.html';
@@ -238,12 +243,12 @@
             }
         }
 
-        function handleRegister(e) {
+        async function handleRegister(e) {
             e.preventDefault();
             var name = document.getElementById('reg-name').value.trim();
             var email = document.getElementById('reg-email').value.trim();
             var password = document.getElementById('reg-password').value;
-            var result = Auth.register(name, email, password);
+            var result = await Auth.register(name, email, password);
 
             if (result.success) {
                 window.location.href = 'dashboard.html';

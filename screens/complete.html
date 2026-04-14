@@ -57,6 +57,12 @@
         .btn:hover { transform: scale(1.05); }
         .btn-primary { background: linear-gradient(135deg, #D4A017, #FFD700); color: #1B5E20; }
         .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .auto-note {
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            min-height: 1.2em;
+        }
         @media (max-width: 768px) {
             .complete-card { padding: 2rem 1.5rem; }
             h1 { font-size: 1.5rem; }
@@ -73,9 +79,13 @@
         <p class="score-label">POINTS</p>
         <div class="stars" id="star-rating"></div>
         <p class="star-label" id="star-label"></p>
+        <p class="auto-note" id="auto-note"></p>
         <div class="buttons" id="buttons"></div>
     </div>
 
+    <script>
+        window.SRM_USE_BACKEND = true;
+    </script>
     <script src="../js/storage.js"></script>
     <script src="../data/puzzles.js"></script>
     <script>
@@ -93,6 +103,29 @@
 
         // Save progress
         Storage.complete(buildingId, score);
+
+        (async function syncScore() {
+            try {
+                var current = JSON.parse(localStorage.getItem('srmAuth_current') || '{}');
+                if (!current.token) return;
+
+                await fetch('http://localhost:5000/api/scores/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + current.token
+                    },
+                    body: JSON.stringify({
+                        buildingId: buildingId,
+                        score: score,
+                        livesRemaining: 0,
+                        timeTaken: 0
+                    })
+                });
+            } catch (err) {
+                // Backend sync is optional; local progress remains available.
+            }
+        })();
 
         // Display
         document.getElementById('building-emoji').textContent = building.emoji;
@@ -122,9 +155,11 @@
         var allDone = order.every(function(id) { return progress.completed.includes(id); });
 
         if (allDone) {
-            buttonsEl.innerHTML =
-                '<button class="btn btn-primary" onclick="window.location.href=\'graduation.html\'">\u{1F393} Graduation Ceremony!</button>' +
-                '<button class="btn btn-secondary" onclick="window.location.href=\'map.html\'">Back to Map</button>';
+            document.getElementById('auto-note').textContent = 'All buildings cleared. Heading to the graduation ceremony...';
+            buttonsEl.style.display = 'none';
+            setTimeout(function() {
+                window.location.replace('graduation.html');
+            }, 900);
         } else if (currentIdx < order.length - 1) {
             var nextId = order[currentIdx + 1];
             var nextBuilding = PUZZLES_DATA.buildings[nextId];

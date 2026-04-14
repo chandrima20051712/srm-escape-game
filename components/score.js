@@ -27,3 +27,7 @@ class GameScore {
         this.updateDisplay();
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GameScore;
+}
