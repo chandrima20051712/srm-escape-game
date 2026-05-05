@@ -68,6 +68,54 @@ const SRMApi = {
             }
             throw err;
         }
+    },
+
+    async requestJson(path, options, fallbackError) {
+        try {
+            const requestOptions = options || {};
+            
+            // Get admin token if available
+            const adminToken = typeof localStorage !== 'undefined' ? localStorage.getItem('srmAdminAuth_token') : '';
+            
+            const mergedHeaders = {
+                'Content-Type': 'application/json',
+                ...(requestOptions.headers || {})
+            };
+
+            if (adminToken) {
+                mergedHeaders['Authorization'] = 'Bearer ' + adminToken;
+            }
+
+            const response = await fetch(this.baseUrl + path, {
+                ...requestOptions,
+                headers: mergedHeaders
+            });
+
+            const raw = await response.text();
+            let payload = {};
+            if (raw) {
+                try {
+                    payload = JSON.parse(raw);
+                } catch (err) {
+                    payload = { message: raw };
+                }
+            }
+
+            if (!response.ok) {
+                const message = this.formatError(
+                    payload && (payload.error || payload.detail || payload.message),
+                    (response.status + ' ' + response.statusText) || fallbackError
+                );
+                throw new Error(message || fallbackError);
+            }
+
+            return payload;
+        } catch (err) {
+            if (err instanceof TypeError && /fetch/i.test(err.message)) {
+                throw new Error('Unable to reach the API server at ' + this.baseUrl + '. Start the backend first.');
+            }
+            throw err;
+        }
     }
 };
 

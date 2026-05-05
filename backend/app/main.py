@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from .core.config import settings
 from .core.database import Base, SessionLocal, engine
-from .routers import auth, puzzles, scores
+from .routers import admin, auth, puzzles, scores
 from .seed import seed_puzzles_if_empty
 
 
@@ -45,6 +45,7 @@ async def health():
 app.include_router(auth.router)
 app.include_router(scores.router)
 app.include_router(puzzles.router)
+app.include_router(admin.router)
 
 
 @app.get("/")

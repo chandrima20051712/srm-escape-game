@@ -6,6 +6,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import Puzzle, Score, User
 
 
+BEST_SCORES_CTE = """
+WITH ranked_scores AS (
+    SELECT
+        s.*,
+        ROW_NUMBER() OVER (
+            PARTITION BY s.user_id, s.building_id
+            ORDER BY s.score DESC, s.completed_at DESC
+        ) AS rn
+    FROM scores s
+),
+latest_activity AS (
+    SELECT
+        user_id,
+        MAX(completed_at) AS last_played
+    FROM scores
+    GROUP BY user_id
+)
+"""
+
+
 async def get_user_by_username(db: AsyncSession, username: str) -> User | None:
     result = await db.execute(select(User).where(User.username == username))
     return result.scalar_one_or_none()
@@ -104,19 +124,21 @@ async def get_user_best_score(db: AsyncSession, user_id: int, building_id: str) 
 
 async def get_leaderboard(db: AsyncSession, limit: int = 50) -> list[dict]:
     query = text(
-        """
-        SELECT
-          u.id,
-          u.username,
-          COALESCE(SUM(s.score), 0) as total_score,
-          COUNT(DISTINCT s.building_id) as buildings_completed,
-          MAX(s.completed_at) as last_played
-        FROM users u
-        LEFT JOIN scores s ON u.id = s.user_id
-        GROUP BY u.id, u.username
-        ORDER BY total_score DESC, buildings_completed DESC
-        LIMIT :lim
-        """
+                BEST_SCORES_CTE
+                + """
+                SELECT
+                    u.id,
+                    u.username,
+                    COALESCE(SUM(rs.score), 0) as total_score,
+                    COUNT(DISTINCT rs.building_id) as buildings_completed,
+                    la.last_played
+                FROM users u
+                LEFT JOIN ranked_scores rs ON u.id = rs.user_id AND rs.rn = 1
+                LEFT JOIN latest_activity la ON u.id = la.user_id
+                GROUP BY u.id, u.username, la.last_played
+                ORDER BY total_score DESC, buildings_completed DESC
+                LIMIT :lim
+                """
     )
     result = await db.execute(query, {"lim": limit})
     return [dict(row._mapping) for row in result]
@@ -124,19 +146,20 @@ async def get_leaderboard(db: AsyncSession, limit: int = 50) -> list[dict]:
 
 async def get_user_rank(db: AsyncSession, user_id: int) -> int | None:
     query = text(
-        """
-        SELECT rank FROM (
-          SELECT
-            u.id,
-            ROW_NUMBER() OVER (
-              ORDER BY COALESCE(SUM(s.score), 0) DESC, COUNT(DISTINCT s.building_id) DESC
-            ) AS rank
-          FROM users u
-          LEFT JOIN scores s ON u.id = s.user_id
-          GROUP BY u.id
-        ) ranked
-        WHERE id = :uid
-        """
+                BEST_SCORES_CTE
+                + """
+                SELECT rank FROM (
+                    SELECT
+                        u.id,
+                        ROW_NUMBER() OVER (
+                            ORDER BY COALESCE(SUM(rs.score), 0) DESC, COUNT(DISTINCT rs.building_id) DESC
+                        ) AS rank
+                    FROM users u
+                    LEFT JOIN ranked_scores rs ON u.id = rs.user_id AND rs.rn = 1
+                    GROUP BY u.id
+                ) ranked
+                WHERE id = :uid
+                """
     )
     result = await db.execute(query, {"uid": user_id})
     row = result.first()
@@ -226,3 +249,90 @@ async def get_admin_puzzles(db: AsyncSession, user_id: int) -> list[Puzzle]:
 async def get_all_puzzles(db: AsyncSession) -> list[Puzzle]:
     result = await db.execute(select(Puzzle).order_by(Puzzle.building_id, Puzzle.puzzle_order))
     return list(result.scalars())
+
+
+async def get_all_players(db: AsyncSession) -> list[dict]:
+    """Get all players with their progress summary"""
+    query = text(
+                BEST_SCORES_CTE
+                + """
+                SELECT
+                    u.id,
+                    u.username,
+                    u.email,
+                    u.created_at,
+                    COALESCE(SUM(rs.score), 0) as total_score,
+                    COUNT(DISTINCT rs.building_id) as buildings_completed,
+                    la.last_played
+                FROM users u
+                LEFT JOIN ranked_scores rs ON u.id = rs.user_id AND rs.rn = 1
+                LEFT JOIN latest_activity la ON u.id = la.user_id
+                WHERE u.is_admin = 0
+                GROUP BY u.id, u.username, u.email, u.created_at, la.last_played
+                ORDER BY u.created_at DESC
+                """
+    )
+    result = await db.execute(query)
+    return [dict(row._mapping) for row in result]
+
+
+async def get_player_progress(db: AsyncSession, player_id: int) -> dict:
+    """Get detailed progress for a specific player"""
+    user_result = await db.execute(
+        select(User).where(User.id == player_id)
+    )
+    user = user_result.scalar_one_or_none()
+    
+    if not user or user.is_admin:
+        return None
+    
+    scores_result = await db.execute(
+        select(Score)
+        .where(Score.user_id == player_id)
+        .order_by(Score.building_id, Score.completed_at.desc())
+    )
+    scores = list(scores_result.scalars())
+
+    # Group scores by building and keep the best attempt for each building.
+    building_scores = {}
+    for score in scores:
+        existing = building_scores.get(score.building_id)
+        if not existing:
+            building_scores[score.building_id] = {
+                "best_score": score.score,
+                "attempts": 1,
+                "completed_at": score.completed_at,
+                "lives_remaining": score.lives_remaining,
+                "time_taken": score.time_taken,
+            }
+            continue
+
+        existing["attempts"] += 1
+        if score.score > existing["best_score"] or (
+            score.score == existing["best_score"] and score.completed_at > existing["completed_at"]
+        ):
+            existing.update(
+                {
+                    "best_score": score.score,
+                    "completed_at": score.completed_at,
+                    "lives_remaining": score.lives_remaining,
+                    "time_taken": score.time_taken,
+                }
+            )
+    
+    total_score = sum(s["best_score"] for s in building_scores.values())
+    
+    return {
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "created_at": user.created_at,
+        },
+        "summary": {
+            "total_score": total_score,
+            "buildings_completed": len(building_scores),
+            "last_played": max((s["completed_at"] for s in building_scores.values()), default=None),
+        },
+        "buildings": building_scores,
+    }

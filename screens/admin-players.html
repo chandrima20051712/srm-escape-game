@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Player Progress</title>
+    <link rel="stylesheet" href="../css/campus.css">
+    <style>
+        .admin-panel {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: #555;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .players-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .player-card {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .player-card:hover {
+            background: #efefef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .player-email {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .player-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .player-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-stat-label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .player-stat-value {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .view-btn:hover {
+            background: #0052a3;
+        }
+
+        .detail-view {
+            display: none;
+        }
+
+        .detail-view.active {
+            display: block;
+        }
+
+        .player-progress {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .progress-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .progress-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        .buildings-breakdown {
+            margin-top: 20px;
+        }
+
+        .buildings-breakdown h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .building-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .building-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .building-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .no-players {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .player-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .player-stats {
+                margin: 10px 0;
+                width: 100%;
+            }
+
+            .view-btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <div class="admin-header">
+            <h1>👥 Player Progress</h1>
+            <a href="admin-editor.html" class="back-btn">← Back to Editor</a>
+        </div>
+
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search players by username or email..."
+            >
+        </div>
+
+        <div id="errors"></div>
+
+        <div id="playersList" class="players-list">
+            <div class="loading">Loading players...</div>
+        </div>
+
+        <div id="detailView" class="detail-view">
+            <div class="player-progress" id="progressContent"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+        class AdminPlayers {
+            constructor() {
+                this.players = [];
+                this.filteredPlayers = [];
+                this.currentDetail = null;
+                this.init();
+            }
+
+            async init() {
+                await this.checkAuth();
+                await this.loadPlayers();
+                this.setupEventListeners();
+            }
+
+            async checkAuth() {
+                const user = Auth.getAdminUser();
+                if (!user || !user.isAdmin) {
+                    window.location.href = 'auth.html';
+                    return;
+                }
+            }
+
+            async loadPlayers() {
+                try {
+                    const response = await SRMApi.requestJson('/api/admin/players', {});
+                    this.players = response.players || [];
+                    this.filteredPlayers = [...this.players];
+                    this.render();
+                } catch (error) {
+                    this.showError(`Failed to load players: ${error}`);
+                    this.renderEmpty();
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.filterPlayers(e.target.value);
+                });
+            }
+
+            filterPlayers(query) {
+                const lower = query.toLowerCase();
+                this.filteredPlayers = this.players.filter(p =>
+                    p.username?.toLowerCase().includes(lower) ||
+                    p.email?.toLowerCase().includes(lower)
+                );
+                this.render();
+            }
+
+            showError(message) {
+                const errEl = document.getElementById('errors');
+                errEl.innerHTML = `<div class="error">${message}</div>`;
+                setTimeout(() => {
+                    errEl.innerHTML = '';
+                }, 5000);
+            }
+
+            render() {
+                const listEl = document.getElementById('playersList');
+                
+                if (this.filteredPlayers.length === 0) {
+                    this.renderEmpty();
+                    return;
+                }
+
+                listEl.innerHTML = this.filteredPlayers.map(player => `
+                    <div class="player-card" onclick="adminPlayers.showDetail(${player.id})">
+                        <div class="player-info">
+                            <div class="player-name">${this.escape(player.username)}</div>
+                            <div class="player-email">${this.escape(player.email)}</div>
+                            <div class="player-stats">
+                                <div class="player-stat">
+                                    <span class="player-stat-label">Total Score</span>
+                                    <span class="player-stat-value">${player.total_score || 0}</span>
+                                </div>
+                                <div class="player-stat">
+                                    <span class="player-stat-label">Buildings</span>
+                                    <span class="player-stat-value">${player.buildings_completed || 0}</span>
+                                </div>
+                                <div class="player-stat">
+                                    <span class="player-stat-label">Last Played</span>
+                                    <span class="player-stat-value">${this.formatDate(player.last_played)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="view-btn" onclick="event.stopPropagation(); adminPlayers.showDetail(${player.id});">View Details</button>
+                    </div>
+                `).join('');
+            }
+
+            renderEmpty() {
+                const listEl = document.getElementById('playersList');
+                listEl.innerHTML = '<div class="no-players">No players found</div>';
+            }
+
+            async showDetail(playerId) {
+                try {
+                    const response = await SRMApi.requestJson(`/api/admin/players/${playerId}`, {});
+                    this.currentDetail = response;
+                    this.renderDetail();
+                } catch (error) {
+                    this.showError(`Failed to load player details: ${error}`);
+                }
+            }
+
+            renderDetail() {
+                if (!this.currentDetail) return;
+
+                const user = this.currentDetail.user;
+                const summary = this.currentDetail.summary;
+                const buildings = this.currentDetail.buildings;
+
+                const contentEl = document.getElementById('progressContent');
+                const backBtn = document.createElement('button');
+                backBtn.textContent = '← Back to List';
+                backBtn.className = 'back-btn';
+                backBtn.onclick = () => this.hideDetail();
+
+                const buildingsHtml = Object.entries(buildings).map(([buildingId, data]) => `
+                    <div class="building-item">
+                        <div class="building-name">📍 ${this.escape(buildingId)}</div>
+                        <div class="building-details">
+                            <div>
+                                <strong>Best Score:</strong> ${data.best_score || 0}
+                            </div>
+                            <div>
+                                <strong>Attempts:</strong> ${data.attempts || 0}
+                            </div>
+                            <div>
+                                <strong>Lives Used:</strong> ${3 - (data.lives_remaining || 0)}
+                            </div>
+                            <div>
+                                <strong>Time:</strong> ${this.formatTime(data.time_taken)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                contentEl.innerHTML = `
+                    <div class="progress-header">
+                        <div>
+                            <h2>${this.escape(user.username)}</h2>
+                            <div style="color: #666; font-size: 14px;">${this.escape(user.email)}</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Total Score</div>
+                            <div class="summary-value">${summary.total_score || 0}</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Buildings Completed</div>
+                            <div class="summary-value">${summary.buildings_completed || 0}/5</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Member Since</div>
+                            <div class="summary-value">${this.formatDate(user.created_at, true)}</div>
+                        </div>
+                    </div>
+
+                    <div class="buildings-breakdown">
+                        <h3>📊 Building Breakdown</h3>
+                        ${buildingsHtml || '<div style="color: #999;">No completed buildings</div>'}
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        ${backBtn.outerHTML}
+                    </div>
+                `;
+
+                // Re-attach click handler
+                backBtn.onclick = () => this.hideDetail();
+
+                document.getElementById('detailView').classList.add('active');
+                document.getElementById('playersList').style.display = 'none';
+            }
+
+            hideDetail() {
+                this.currentDetail = null;
+                document.getElementById('detailView').classList.remove('active');
+                document.getElementById('playersList').style.display = 'grid';
+            }
+
+            formatDate(dateStr, detailed = false) {
+                if (!dateStr) return 'Never';
+                const date = new Date(dateStr);
+                if (detailed) {
+                    return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                }
+                const now = new Date();
+                const diff = now - date;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                if (days === 0) return 'Today';
+                if (days === 1) return 'Yesterday';
+                if (days < 7) return `${days}d ago`;
+                if (days < 30) return `${Math.floor(days / 7)}w ago`;
+                return `${Math.floor(days / 30)}m ago`;
+            }
+
+            formatTime(seconds) {
+                if (!seconds) return '-';
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                if (mins === 0) return `${secs}s`;
+                return `${mins}m ${secs}s`;
+            }
+
+            escape(str) {
+                if (!str) return '';
+                return str
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+        }
+
+        let adminPlayers;
+        document.addEventListener('DOMContentLoaded', () => {
+            adminPlayers = new AdminPlayers();
+        });
+    </script>
+</body>
+</html>
